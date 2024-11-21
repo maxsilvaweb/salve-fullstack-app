@@ -1,0 +1,10 @@
+query GetClinics($offset: Int, $limit: Int) {
+  clinics(offset: $offset, limit: $limit) {
+    id
+    name
+    address
+    service_type
+    created_at
+  }
+  clinicsCount
+}
