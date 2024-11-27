@@ -4,99 +4,207 @@ import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHt
 import express from 'express';
 import http from 'http';
 import cors from 'cors';
-import pkg from 'pg';
-const { Pool } = pkg;
+import { PrismaClient } from '@prisma/client';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+const prisma = new PrismaClient({
+  log: ['query', 'info', 'warn', 'error'],
 });
 
+// Handle the connection
+prisma.$connect()
+  .then(() => {
+    console.log('Successfully connected to the database');
+  })
+  .catch((e) => {
+    console.error('Failed to connect to the database:', e);
+  });
+
 const typeDefs = `#graphql
-  type User {
-    id: ID!
-    first_name: String!
-    last_name: String!
-    email: String!
-    created_at: String!
+  scalar DateTime
+
+  type Patient {
+    id: Int!
+    clinicId: Int!
+    firstName: String!
+    lastName: String!
+    dateOfBirth: DateTime!
+    createdAt: DateTime!
+    clinic: Clinic
   }
 
   type Clinic {
-    id: ID!
+    id: Int!
     name: String!
-    address: String!
-    service_type: String!
-    created_at: String!
+    createdAt: DateTime!
+    patients: [Patient!]
+  }
+
+  type PaginatedPatients {
+    patients: [Patient!]!
+    totalPages: Int!
+  }
+
+  type PaginatedClinics {
+    clinics: [Clinic!]!
+    totalPages: Int!
+  }
+
+  type DeleteResponse {
+    id: Int!
+    success: Boolean!
+    message: String!
   }
 
   type Query {
-    clinics(offset: Int, limit: Int): [Clinic!]!
-    clinicsCount: Int!
+    patients(page: Int!, limit: Int!): PaginatedPatients!
+    clinics(page: Int!, limit: Int!): PaginatedClinics!
   }
 
   type Mutation {
-    registerUser(first_name: String!, last_name: String!, email: String!, password: String!): User
-    login(email: String!, password: String!): User
+    createClinic(name: String!): Clinic!
+    updateClinic(id: Int!, name: String!): Clinic!
+    deleteClinic(id: Int!): DeleteResponse!
+    
+    createPatient(
+      clinicId: Int!
+      firstName: String!
+      lastName: String!
+      dateOfBirth: DateTime!
+    ): Patient!
+    
+    updatePatient(
+      id: Int!
+      clinicId: Int
+      firstName: String
+      lastName: String
+      dateOfBirth: DateTime
+    ): Patient!
+    
+    deletePatient(id: Int!): DeleteResponse!
   }
 `;
 
 const resolvers = {
-  Query: {
-    clinics: async (_, { offset = 0, limit = 10 }) => {
-      const result = await pool.query(
-        'SELECT * FROM clinics ORDER BY created_at DESC LIMIT $1 OFFSET $2',
-        [limit, offset]
-      );
-      return result.rows;
+  DateTime: {
+    __parseValue(value) {
+      return new Date(value);
     },
-    clinicsCount: async () => {
-      const result = await pool.query('SELECT COUNT(*) FROM clinics');
-      return parseInt(result.rows[0].count);
+    __serialize(value) {
+      return value.toISOString();
+    }
+  },
+  Query: {
+    patients: async (_, { page, limit }) => {
+      const skip = (page - 1) * limit;
+      const [patients, count] = await Promise.all([
+        prisma.patient.findMany({
+          skip,
+          take: limit,
+          include: { clinic: true },
+        }),
+        prisma.patient.count(),
+      ]);
+      return {
+        patients,
+        totalPages: Math.ceil(count / limit),
+      };
+    },
+    clinics: async (_, { page, limit }) => {
+      const skip = (page - 1) * limit;
+      const [clinics, count] = await Promise.all([
+        prisma.clinic.findMany({
+          skip,
+          take: limit,
+          include: { patients: true },
+        }),
+        prisma.clinic.count(),
+      ]);
+      return {
+        clinics,
+        totalPages: Math.ceil(count / limit),
+      };
     },
   },
   Mutation: {
-    registerUser: async (_, { first_name, last_name, email, password }) => {
-      try {
-        const result = await pool.query(
-          'INSERT INTO users (first_name, last_name, email, password) VALUES ($1, $2, $3, MD5($4)) RETURNING *',
-          [first_name, last_name, email, password]
-        );
-        return result.rows[0];
-      } catch (error) {
-        throw new Error('Registration failed');
-      }
+    createClinic: async (_, { name }) => {
+      return prisma.clinic.create({
+        data: { name },
+      });
     },
-    login: async (_, { email, password }) => {
-      const result = await pool.query(
-        'SELECT * FROM users WHERE email = $1 AND password = MD5($2)',
-        [email, password]
-      );
-      
-      if (result.rows.length === 0) {
-        throw new Error('Invalid credentials');
-      }
-      
-      return result.rows[0];
+    updateClinic: async (_, { id, name }) => {
+      return prisma.clinic.update({
+        where: { id },
+        data: { name },
+      });
+    },
+    deleteClinic: async (_, { id }) => {
+      await prisma.clinic.delete({
+        where: { id },
+      });
+      return {
+        id,
+        success: true,
+        message: 'Clinic deleted successfully',
+      };
+    },
+    createPatient: async (_, { clinicId, firstName, lastName, dateOfBirth }) => {
+      return prisma.patient.create({
+        data: {
+          clinicId,
+          firstName,
+          lastName,
+          dateOfBirth,
+        },
+        include: { clinic: true },
+      });
+    },
+    updatePatient: async (_, { id, ...data }) => {
+      return prisma.patient.update({
+        where: { id },
+        data,
+        include: { clinic: true },
+      });
+    },
+    deletePatient: async (_, { id }) => {
+      await prisma.patient.delete({
+        where: { id },
+      });
+      return {
+        id,
+        success: true,
+        message: 'Patient deleted successfully',
+      };
     },
   },
 };
 
-const app = express();
-const httpServer = http.createServer(app);
+async function startServer() {
+  try {
+    // Initialize Express and HTTP server
+    const app = express();
+    const httpServer = http.createServer(app);
 
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-  plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
-});
+    // Create Apollo Server
+    const server = new ApolloServer({
+      typeDefs,
+      resolvers,
+      plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+    });
 
-await server.start();
+    // Start the server
+    await server.start();
 
-app.use(
-  '/graphql',
-  cors(),
-  express.json(),
-  expressMiddleware(server),
-);
+    // Apply middleware
+    app.use('/graphql', cors(), express.json(), expressMiddleware(server));
 
-await new Promise((resolve) => httpServer.listen({ port: 4000 }, resolve));
-console.log(`🚀 Server ready at http://localhost:4000/graphql`);
+    // Start listening
+    await new Promise((resolve) => httpServer.listen({ port: 4000 }, resolve));
+
+    console.log(`Server ready at http://localhost:4000/graphql`);
+  } catch (error) {
+    console.error('Error starting server:', error);
+    process.exit(1);
+  }
+}
+
+startServer();

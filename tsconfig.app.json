@@ -7,7 +7,8 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./client/*"]
+      "@/*": ["./client/client/*"],
+      "~/*": ["src/*"]
     },
 
     /* Bundler mode */
@@ -24,5 +25,13 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["client", "tsconfig.node.json", "tsconfig.json"]
+  "include": [
+    "client",
+    "tsconfig.node.json",
+    "tsconfig.json",
+    "tsconfig.app.json",
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.js"
+  ]
 }
