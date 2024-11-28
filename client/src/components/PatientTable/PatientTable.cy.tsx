@@ -1,4 +1,4 @@
-import React from 'react';
+import { mount } from '@cypress/react';
 import { MockedProvider } from '@apollo/client/testing';
 import { GET_PATIENTS } from '@/graphql/queries';
 import PatientTable from './PatientTable';
@@ -25,9 +25,9 @@ const mocks = [
 
 describe('PatientTable', () => {
   it('renders patient data correctly', () => {
-    cy.mount(
+    mount(
       <MockedProvider mocks={mocks} addTypename={false}>
-        <PatientTable />
+        <PatientTable patients={[]} />
       </MockedProvider>
     );
 

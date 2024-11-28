@@ -1,14 +1,12 @@
 import client from '@/lib/apolloClient';
 import { ApolloProvider, useQuery } from '@apollo/client';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { PatientTable } from '@/components/PatientTable';
 import { GET_CLINICS } from '@/graphql/queries';
-import { Loader } from 'lucide-react';
-import Loading from '@/components/ui/loading';
 import { Clinic } from '@/global';
 
 function MainContent() {
-  const { data: clinicsData, loading, error } = useQuery(GET_CLINICS);
+  const { data: clinicsData, error } = useQuery(GET_CLINICS);
 
   if (error) return <div>Error loading clinics: {error.message}</div>;
 

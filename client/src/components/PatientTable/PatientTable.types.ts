@@ -1,12 +1,15 @@
 export interface Patient {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   clinic: string;
+  dateOfBirth: string;
 }
 
 export interface PatientTableProps {
-  patients: Patient[];
+  patients?: Patient[];
+  clinicName?: string;
 }
 
 export interface PatientsData {

@@ -1,10 +1,15 @@
 import React from 'react';
-import { TableHead } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
+import { TableHead } from '@/components/ui/Table';
+import { Button } from '@/components/ui/Button';
 import { ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { SortableHeaderProps } from './SortableHeader.types';
 
-const SortableHeader: React.FC<SortableHeaderProps> = ({ field, label, sortConfig, onSort }) => {
+const SortableHeader: React.FC<SortableHeaderProps> = ({
+  field,
+  label,
+  sortConfig,
+  onSort,
+}) => {
   const isActive = sortConfig.field === field;
   const icon = isActive ? (
     sortConfig.order === 'asc' ? (

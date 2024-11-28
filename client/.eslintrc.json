@@ -1,12 +1,16 @@
 {
-  "extends": [
-    "airbnb",
-    "airbnb-typescript"
-  ],
+  "extends": ["airbnb", "airbnb-typescript"],
   "parserOptions": {
     "project": "./tsconfig.json"
   },
   "rules": {
-    // Add any custom rules or overrides here
+    "semi": ["error", "never"],
+    "quotes": ["error", "single"],
+    "indent": ["error", 2],
+    "linebreak-style": ["error", "unix"],
+    "no-console": "warn",
+    "no-unused-vars": "warn",
+    "comma-dangle": ["error", "always-multiline"],
+    "arrow-parens": ["error", "always"]
   }
 }

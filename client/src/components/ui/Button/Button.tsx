@@ -21,4 +21,5 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
 Button.displayName = 'Button';
 
-export { Button, buttonVariantStyles };
+export { buttonVariantStyles };
+export default Button;

@@ -5,82 +5,16 @@ import {
   Table,
   TableHeader,
   TableBody,
-  TableHead,
   TableRow,
   TableCell,
-} from '@/components/ui/table';
-import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+} from '@/components/ui/Table';
 import Loading from '@/components/ui/loading';
-
-interface Patient {
-  id: number;
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string;
-  clinicId: number;
-  clinic?: {
-    id: number;
-    name: string;
-  };
-}
-
-interface PatientsData {
-  patients: {
-    patients: Patient[];
-    totalPages: number;
-  };
-}
-
-interface PatientTableProps {
-  clinicName?: string;
-}
-
-type SortField = 'name' | 'dateOfBirth' | 'clinic';
-type SortOrder = 'asc' | 'desc' | null;
-
-interface SortConfig {
-  field: SortField;
-  order: SortOrder;
-}
-
-interface SortableHeaderProps {
-  field: SortField;
-  label: string;
-  sortConfig: SortConfig;
-  onSort: (field: SortField) => void;
-}
-
-const SortableHeader: React.FC<SortableHeaderProps> = ({
-  field,
-  label,
-  sortConfig,
-  onSort,
-}) => {
-  const isActive = sortConfig.field === field;
-  const icon = isActive ? (
-    sortConfig.order === 'asc' ? (
-      <ArrowUp className="ml-2 h-4 w-4 text-white" />
-    ) : (
-      <ArrowDown className="ml-2 h-4 w-4 text-white" />
-    )
-  ) : (
-    <ArrowUpDown className="ml-2 h-4 w-4 text-white" />
-  );
-
-  return (
-    <TableHead>
-      <Button
-        variant="ghost"
-        onClick={() => onSort(field)}
-        className="px-4 py-2 bg-purple-600 text-white hover:bg-purple-900 hover:focus:outline-none hover:text-white margin-left-[-12px]"
-      >
-        {label}
-        {icon}
-      </Button>
-    </TableHead>
-  );
-};
+import SortableHeader from '@/components/SortableHeader/SortableHeader';
+import { Patient, PatientTableProps, PatientsData } from './PatientTable.types';
+import {
+  SortField,
+  SortConfig,
+} from '@/components/SortableHeader/SortableHeader.types';
 
 const PatientTable: React.FC<PatientTableProps> = ({ clinicName }) => {
   const { loading, error, data } = useQuery<PatientsData>(GET_PATIENTS, {
