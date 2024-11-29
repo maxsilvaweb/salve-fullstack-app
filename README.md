@@ -36,6 +36,8 @@ Cypress was used for testing and jest for unit testing. I was going to add authe
   - Create a global Prisma client for the app.
   - Use git flow for version control maybe with github actions for CI/CD.
   - Create .env.local, env.development and env.production files for the app.
+  - Error handling could be condensed and use a Toast.tsx or Alert.tsx component system.
+  - Loader could be within a modal or use the ShadUI skeleton for each table row.
 
 ## Requirements
 
