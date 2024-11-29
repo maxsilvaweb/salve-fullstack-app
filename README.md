@@ -113,7 +113,7 @@ Go to - prisma/schema.prisma and change line 7
 
 ```bash
 
-url = env("DATABASE_URL") to env("PRISMA_DATABASE_URL")
+url = env("DATABASE_URL") to ""postgresql://admin:password123@localhost:5432/health_clinic_db"
 npx prisma generate
 ```
 
