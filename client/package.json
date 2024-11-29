@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "jest",
     "cypress:open": "cypress open",
-    "cypress:run": "cypress run"
+    "cypress:run": "cypress run",
+    "format": "prettier --write \"client/**/*.{js,jsx,ts,tsx,json,css,md}\" \"server/**/*.{js,jsx,ts,tsx,json,css,md}\""
   },
   "dependencies": {
     "@apollo/client": "^3.9.8",
